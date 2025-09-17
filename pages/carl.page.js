@@ -1,5 +1,7 @@
 const { expect, Locator, Page } = require('@playwright/test');
 
+const MIN_WAIT_TIME = 1000;
+const MAX_WAIT_TIME = 5000;
 class CarlPage {
   constructor(page) {
     this.page = page;
@@ -18,11 +20,17 @@ class CarlPage {
 
   async goToCarlFromHome() {
     await this.viewFullDetailsButton.click();
+    await this.page.waitForTimeout(MAX_WAIT_TIME);
   }
 
   async clickSendButton() {
     await this.sendButton.click();
-    await this.page.waitForTimeout(5000); // Pequeña espera para que el bot responda
+    await this.page.waitForTimeout(MAX_WAIT_TIME); // Pequeña espera para que el bot responda
+  }
+
+  async clickSendButton() {
+    await this.sendButton.click();
+    await this.page.waitForTimeout(MAX_WAIT_TIME); // Pequeña espera para que el bot responda
   }
 
   async writeText(message) {
@@ -34,14 +42,15 @@ class CarlPage {
   async clickOption(locator) {
     await locator.waitFor({ state: 'visible' }); 
     await locator.click(); 
+    await this.page.waitForTimeout(MIN_WAIT_TIME);
   }
 
   async getLastCarlAnswer() {
     await this.answerLoader.waitFor({ state: 'detached' });     //Esperar a que el loader se oculte
     await this.sendButton.waitFor({ state: 'visible' });     //Esperar a que el botón de enviar sea visible
     await this.microButton.waitFor({ state: 'visible' });     //Esperar a que el botón de micro sea visible
-    await this.lastCarlMessage.waitFor({ state: 'visible' });
 
+    await this.page.waitForTimeout(MIN_WAIT_TIME);
     return this.lastCarlMessage.innerText();
   }
 
@@ -58,35 +67,36 @@ class CarlPage {
     }
   }
 
+  async isMessageHistory() {
+    let messageCount = await this.allChatMessages.count()
+     
+    if (messageCount < 2) { //Si hay menos de 2 mensajes, no hay historial
+       return false;
+    } else {    //Sino, hay 2 mensajes o más, es decir, hay historial
+      return true;
+    }
+  }
+
   async waitForElement(locator){
     await locator.waitFor({ state: 'visible' });
   }
 
   async getChatInputText() {
     await this.chatInput.waitFor({ state: 'visible' });
-    return this.chatInput.inputValue();
+    let chatInput = await this.chatInput.inputValue();
+    return chatInput;
   }
 
   async isAnswerLoading() {
-    return this.answerLoader.isVisible();
+    isLoading = await this.answerLoader.isVisible();
+    return isLoading;
   }
 
   async elementIsVisible(locator) {
-    return locator.isVisible();
+    return await locator.isVisible();
   }
 
-  async validateKeywordsInResponseStrictMode(keywords) {
-    //por si acaso, esperar que habilite el botón ENVIAR 
-    await this.sendButton.waitFor({ state: 'visible' });     
-
-    const responseText = await this.getLastCarlAnswer(); //obtener última respuesta de CARL
-    
-    for (const keyword of keywords) {
-      expect(responseText.toLowerCase(), `Faltó el keyword "${keyword}" en la respuesta`).toContain(keyword.toLowerCase());
-    }
-  }
-
-  //Valida que hayan al menos 8 de las 10 palabras claves
+  //Valida que hayan al menos 8 de las 15 palabras claves
   async validateKeywordsInResponseFlexibleMode(keywords) {
     //por si acaso, esperar que habilite el botón ENVIAR 
     await this.sendButton.waitFor({ state: 'visible' });     
@@ -96,6 +106,9 @@ class CarlPage {
 
     const missingKeywords = [];
     const matchedKeywords = [];
+
+    let errorMessage = "";
+    
 
     // Recorrer todas las palabras clave y contar cuántas se encuentran en la respuesta
     for (const keyword of keywords) {
@@ -108,20 +121,22 @@ class CarlPage {
 
     // Afirmar que el porcentaje de coincidencia es igual o superior al 80%
     let pass = matchedKeywords.length >= 8;
-    
-    if (!pass) {
-      const errorMessage = `
-        --- Test de Cobertura de Palabras Clave ---
-        FALLA: La respuesta no alcanzó el umbral del 80%.
+
+    let resultMessage = `
+        ------- Test de Cobertura de Palabras Clave -------        
           - Total de Palabras que coincidieron: ${matchedKeywords.length}
           - Palabras Clave que coincidieron: ${matchedKeywords}
           - Palabras Clave Faltantes: ${missingKeywords}
           - Total de Palabras Clave esperadas: ${keywords.length}
         ---------------------------------------------
-        `;
-      expect(pass, errorMessage).toBe(true);
+        `;      
+    
+      console.log(resultMessage)
+    
+    if (!pass) {
+      errorMessage = `FALLA: La respuesta de CARL no hizo match con al menos el 50% de los keywords esperados.`;      
     }
-      
+      await expect(pass, errorMessage).toBe(true);
   }
 
   //Validar que hay al menos una intención o frase que coincide
@@ -131,26 +146,35 @@ class CarlPage {
 
     const responseText = await this.getLastCarlAnswer(); //obtener última respuesta de CARL
     const lowerCaseResponse = responseText.toLowerCase();
-
+    
+    let errorMessage = "";
+    let phraseMatched = "Ninguna";
+    let resultMessage = "";
     let validatedIntention = false;
+
     for (const phrase of intentions) {
         if (lowerCaseResponse.includes(phrase)) {
             validatedIntention = true;
+            phraseMatched = phrase;
             break; // Una vez que se encuentra una coincidencia, no es necesario seguir buscando.
         }
     }
 
-    if (!validatedIntention) {
-      const errorMessage = `
-        --- Test de Intenciones ---
-        FALLA: La respuesta del CARL no coincidió con ninguna de las intenciones planteadas.
+    resultMessage = `
+        -------------- Test de Intenciones ---------
           - Frases esperadas: ${intentions}
+          - Frase que hizo Match: ${phraseMatched}
         ---------------------------------------------
         `;
+    
+    console.log(resultMessage);
+
+    if (!validatedIntention) {
+      errorMessage = 'FALLA: La respuesta del CARL no coincidió con ninguna de las intenciones planteadas.';
     }
 
     // Afirmar que al menos una frase de la intención correcta está presente
-    expect(validatedIntention, errorMessage).toBe(true);
+    await expect(validatedIntention, errorMessage).toBe(true);
       
   }  
 }

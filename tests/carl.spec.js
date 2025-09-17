@@ -6,9 +6,11 @@ import { TribesPage } from '../pages/tribes.page';
 import { LoginPage } from '../pages/login.page'; 
 import { users } from '../utils/test-users';
 
+const MIN_WAIT_TIME = 1000;
+const MAX_WAIT_TIME = 5000;
 
 /////////////////////////////////////////////////////// Grupo 1: Navegación a CARL
-/*describe('Navegación a CARL', () => {
+describe('Navegación a CARL', () => {
 
   test.beforeEach(async ({ page }) => {
       const loginPage = new LoginPage(page);
@@ -43,6 +45,7 @@ import { users } from '../utils/test-users';
       await loginPage.login(users.userPremium.email, users.userPremium.password); //Usuario con 0 advice publicado
     
       await page.goto('/carl'); 
+      await page.waitForTimeout(MAX_WAIT_TIME); //Espera para cargar correctamente el bot
   });
 
   
@@ -88,6 +91,22 @@ import { users } from '../utils/test-users';
       expect(secondToLastMessage, 'La pregunta recién enviada no se visualiza de penúltimo en el chat').toBe(textToSend);    
   });
    
+  test('Enviar pregunta vacía a Carl', async ({ page }) => {   
+      const carlPage = new CarlPage(page);   
+      const textToSend = "   ";
+      let currentTypedText = "";
+
+      await carlPage.writeText(textToSend);
+
+      currentTypedText = await carlPage.getChatInputText();
+      expect(currentTypedText, 'El texto escrito en el input no está vacío').toBe(textToSend);
+      
+      await carlPage.clickOption(carlPage.sendButton);
+
+      let isLoading = await carlPage.isAnswerLoading();
+
+      expect(isLoading, 'CARL no valida que no se puedan enviar preguntas que tenga únicamente espacios').toBe(false);  
+  });
 }); 
 
 /////////////////////////////////////////////////////// Grupo 3: Preguntas sobre las tribus a CARL
@@ -100,6 +119,7 @@ describe('Solicitud de Tribus a CARL', () => {
       await loginPage.login(users.userPremium.email, users.userPremium.password); //Usuario con 0 advice publicado
     
       await page.goto('/carl'); 
+      await page.waitForTimeout(MAX_WAIT_TIME); //Espera para cargar correctamente el bot
   });
 
   test('Solicitar tribus de las que soy parte', async ({ page }) => {
@@ -127,70 +147,80 @@ describe('Solicitud de Tribus a CARL', () => {
       expect(sortedCarlAnswerArray, 'La lista de tribus proporcionada por Carl no coincide con las tribus listadas en My Tribes').toEqual(sortedTribes);    
   });
    
-}); */
+}); 
 
 
-/////////////////////////////////////////////////////// Grupo 3: Validación de palabras clave en respuestas de CARL
+/////////////////////////////////////////////////////// Grupo 4: Validación de palabras clave e intenciones en respuestas de CARL
 describe('Validar palabras clave e intenciones en preguntas a CARL', () => {
   
   //Se ejecutará antes de cada uno de los tests dentro de este bloque Describe
   test.beforeEach(async ({ page }) => {  
+      test.setTimeout(60000);
       const loginPage = new LoginPage(page);
+      
       await loginPage.navigate();
       await loginPage.login(users.userPremium.email, users.userPremium.password); //Usuario con 0 advice publicado  
+
+      await page.goto('/carl'); 
+      await page.waitForTimeout(MAX_WAIT_TIME); //Espera para cargar correctamente el bot
       
   });
 
   
-  /*for (const data of chatData) {
+  for (const data of chatData) {
     test(`Validar palabras claves para la pregunta: "${data.question}"`, async ({ page }) => {
       const carlPage = new CarlPage(page); 
-      const homePage = new HomePage(page);
+
       let textToSend = data.question; 
       console.log("Keywords esperadas:", data.keywords)
 
-      await homePage.goToCarl();
-
-      //Si el chat no comenzó desde cero, abrir nuevo chat
-      if (!await carlPage.elementIsVisible(carlPage.initialChatMessage)){
+      // Si hay historial de mensajes, entonces se inicia un chat nuevo
+     // if ( !(await carlPage.elementIsVisible(carlPage.initialChatMessage)) || await carlPage.isMessageHistory()){ 
+      if (await carlPage.isMessageHistory()){ 
+        console.log("HAY HISTORIAL DE MENSAJES");
         await carlPage.clickOption(carlPage.historyTab);
         await carlPage.clickOption(carlPage.newChatButton); 
-      }
-            
-      await carlPage.waitForElement(carlPage.sendButton);
-      await carlPage.waitForElement(carlPage.initialChatMessage);
+        await page.waitForTimeout(MIN_WAIT_TIME);
+      }    
+        
+      await carlPage.waitForElement(carlPage.initialChatMessage);      
 
       await carlPage.writeText(textToSend);
+      console.log("AÚN NO SE ENVÍA LA PREGUNTA");
       await carlPage.clickSendButton();
       
+      console.log("ENVIADA. AQUÍ ANTES DE ENTRAR A LA FUNCIÓN DE VALIDAR KEYWORDS");
       await carlPage.validateKeywordsInResponseFlexibleMode(data.keywords);
-        await carlPage.clickOption(carlPage.deleteLastChatButton); 
+      await carlPage.clickOption(carlPage.deleteLastChatButton); //Borrar el último chat para no saturar historial
     });
-  } */
+  } 
 
   for (const data of chatData) {
     test(`Validar intención de respuesta para la pregunta: "${data.question}"`, async ({ page }) => {
       const carlPage = new CarlPage(page); 
-      const homePage = new HomePage(page);
+
       let textToSend = data.question; 
       console.log("Frases esperadas:", data.intention)
 
-      await homePage.goToCarl();
-
-      //Si el chat no comenzó desde cero, abrir nuevo chat
-      if (!await carlPage.elementIsVisible(carlPage.initialChatMessage)){
+      // Si hay historial de mensajes, entonces se inicia un chat nuevo
+     // if ( !(await carlPage.elementIsVisible(carlPage.initialChatMessage)) || await carlPage.isMessageHistory()){ 
+      if (await carlPage.isMessageHistory()){ 
+        console.log("HAY HISTORIAL DE MENSAJES");
         await carlPage.clickOption(carlPage.historyTab);
         await carlPage.clickOption(carlPage.newChatButton); 
-      }
-            
-      await carlPage.waitForElement(carlPage.sendButton);
-      await carlPage.waitForElement(carlPage.initialChatMessage);
+        await page.waitForTimeout(MIN_WAIT_TIME);
+      } 
+
+      await carlPage.waitForElement(carlPage.initialChatMessage);  
 
       await carlPage.writeText(textToSend);
+      console.log("AÚN NO SE ENVÍA LA PREGUNTA");
       await carlPage.clickSendButton();
       
+      
+      console.log("ENVIADA. AQUÍ ANTES DE ENTRAR A LA FUNCIÓN DE VALIDAR INTENCIÓN");
       await carlPage.validateIntentionInResponse(data.intention);
-        await carlPage.clickOption(carlPage.deleteLastChatButton); 
+      await carlPage.clickOption(carlPage.deleteLastChatButton);  //Borrar el último chat para no saturar historial
     });
   }
 

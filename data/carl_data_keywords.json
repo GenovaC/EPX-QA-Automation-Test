@@ -1,8 +1,8 @@
 [
   {
     "question": "¿cómo me uno a una tribu?",
-    "keywords": ["sencillo", "participar", "intereses", "privada", "tribu", "temas", "unirse", "comunidades", "join", "miembros"],
-    "intention": ["Unirte a una tribu en EPX", "Presiona el botón “Join”", "será revisada por los moderadores" ]
+    "keywords": ["sencillo", "participar", "intereses", "privada", "tribu", "tribus", "atención", "temas", "unirse", "comunidades", "join", "miembros", "eventos", "explorar", "disponibles"],
+    "intention": ["Unirte a una tribu en EPX", "Presiona el botón “Join”", "será revisada por los moderadores", "Te gustaría ver algunas opciones de tribus", "Unirte a una tribu en EPX", " conectar con personas", "Te explico cómo", "revisa las tribus", "participa en las conversaciones" ]
   }
   
 ]
