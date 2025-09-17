@@ -28,11 +28,6 @@ class CarlPage {
     await this.page.waitForTimeout(MAX_WAIT_TIME); // Pequeña espera para que el bot responda
   }
 
-  async clickSendButton() {
-    await this.sendButton.click();
-    await this.page.waitForTimeout(MAX_WAIT_TIME); // Pequeña espera para que el bot responda
-  }
-
   async writeText(message) {
     await this.answerLoader.waitFor({ state: 'detached' });
     await this.sendButton.waitFor({ state: 'visible' });
@@ -88,8 +83,8 @@ class CarlPage {
   }
 
   async isAnswerLoading() {
-    isLoading = await this.answerLoader.isVisible();
-    return isLoading;
+    let flagIsLoading = await this.answerLoader.isVisible();
+    return flagIsLoading;
   }
 
   async elementIsVisible(locator) {

@@ -18,13 +18,13 @@ class GetAdvicePage {
 
 
     //Modal para subir de membresía
-    this.modalContainer = page.locator('div.overflow-y-auto.bg-gray-0');
-    this.upgradeButton = page.getByRole('button', {name: 'Upgrade', exact: true} );
-    this.payToPlayButton = page.getByText('Pay to Play.');
-    this.closeModalIcon = page.locator('h1.absolute.top-4.right-8.cursor-pointer');    
+    this.modalContainer     = page.locator('div.overflow-y-auto.bg-gray-0');
+    this.upgradeButton      = page.getByRole('button', {name: 'Upgrade', exact: true} );
+    this.payToPlayButton    = page.getByText('Pay to Play.');
+    this.closeModalIcon     = page.locator('h1.absolute.top-4.right-8.cursor-pointer');    
     this.limitedAdvicesText = page.getByText(limitAdviceText);
 
-    // Formulario Pay for post
+    // Formulario Pay to Play
     this.placeOrderButton      = page.getByRole('button', { name: 'Place order' });
     this.amountText            = page.locator('div.flex.justify-between >> p.text-primary');
     this.payFormTitle          = page.getByRole('heading', { name: 'Get Advice' });
@@ -34,7 +34,14 @@ class GetAdvicePage {
     this.payFormCardNumberInput     = page.locator('#credit-card-number');
     this.payFormExpirationDateInput = expirationDateFrame.locator('input');
     this.payFormCVVInput            = cvvFrame.locator('input');
+    this.payFormCVVInput2           = page.getByRole('textbox', { name: '123' });
     this.payFormPostalCodeInput     = postalCode.locator('input');
+
+    //toast notification in form Pay to Play
+    this.numberToastNotification         = page.getByText('number is invalid');
+    this.cvvToastNotification            = page.getByText('cvv is invalid');
+    this.expirationDateToastNotification = page.getByText('expirationDate is invalid');
+    this.postalCodeNotification          = page.getByText('postalCode is invalid');
 
     //Success Payment
     this.succesPaymentText           = page.getByRole('heading', { name: 'Your payment has been successful!' });
@@ -76,6 +83,10 @@ class GetAdvicePage {
     await selector.check();   
   }
 
+   async waitForElement(locator){
+    await locator.waitFor({ state: 'visible' });
+  }
+
   async uncheckRadioInput(selector) {
     await selector.waitFor({ state: 'visible' });
     await selector.uncheck();   
@@ -88,6 +99,10 @@ class GetAdvicePage {
 
   async isDisabled(locator) {
     return locator.isDisabled();  
+  }
+
+  async isEnabled(locator) {
+    return locator.isEnabled();  
   }
 
   async elementExists(locator) {

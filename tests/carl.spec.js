@@ -5,9 +5,16 @@ import { HomePage } from '../pages/home.page';
 import { TribesPage } from '../pages/tribes.page';
 import { LoginPage } from '../pages/login.page'; 
 import { users } from '../utils/test-users';
+import { myJsonSchema } from '../utils/data_json_to_validate';
+import Ajv from 'ajv';
 
 const MIN_WAIT_TIME = 1000;
 const MAX_WAIT_TIME = 5000;
+const TIMEOUT = 60000;
+
+//Para pruebas de JSON
+const ajv = new Ajv();
+const validate = ajv.compile(myJsonSchema);
 
 /////////////////////////////////////////////////////// Grupo 1: Navegación a CARL
 describe('Navegación a CARL', () => {
@@ -39,7 +46,8 @@ describe('Navegación a CARL', () => {
  describe('Funcionamiento básico de CARL', () => {
 
   //Se ejecutará antes de cada uno de los tests dentro de este bloque Describe
-  test.beforeEach(async ({ page }) => {  
+  test.beforeEach(async ({ page }) => {   
+      test.setTimeout(TIMEOUT);
       const loginPage = new LoginPage(page);
       await loginPage.navigate();
       await loginPage.login(users.userPremium.email, users.userPremium.password); //Usuario con 0 advice publicado
@@ -113,7 +121,8 @@ describe('Navegación a CARL', () => {
 describe('Solicitud de Tribus a CARL', () => {
 
   //Se ejecutará antes de cada uno de los tests dentro de este bloque Describe
-  test.beforeEach(async ({ page }) => {  
+  test.beforeEach(async ({ page }) => {   
+      test.setTimeout(TIMEOUT);
       const loginPage = new LoginPage(page);
       await loginPage.navigate();
       await loginPage.login(users.userPremium.email, users.userPremium.password); //Usuario con 0 advice publicado
@@ -155,7 +164,7 @@ describe('Validar palabras clave e intenciones en preguntas a CARL', () => {
   
   //Se ejecutará antes de cada uno de los tests dentro de este bloque Describe
   test.beforeEach(async ({ page }) => {  
-      test.setTimeout(60000);
+      test.setTimeout(TIMEOUT);
       const loginPage = new LoginPage(page);
       
       await loginPage.navigate();
@@ -224,5 +233,63 @@ describe('Validar palabras clave e intenciones en preguntas a CARL', () => {
     });
   }
 
+   
+}); 
+
+/////////////////////////////////////////////////////// Grupo 5: Validar formato de respuestas
+describe('Validar formato de respuestas', () => {
+
+  //Se ejecutará antes de cada uno de los tests dentro de este bloque Describe
+  test.beforeEach(async ({ page }) => { 
+      test.setTimeout(TIMEOUT); 
+      const loginPage = new LoginPage(page);
+      await loginPage.navigate();
+      await loginPage.login(users.userPremium.email, users.userPremium.password); //Usuario con 0 advice publicado
+    
+      await page.goto('/carl'); 
+      await page.waitForTimeout(MAX_WAIT_TIME); //Espera para cargar correctamente el bot
+  });
+
+  test('Solicitar respuesta en formato JSON', async ({ page }) => {
+      const carlPage = new CarlPage(page);    
+
+      const textToSend = `Dame un top 3 de eventos online, la respuesta debe ser exclusivamente en formato JSON y debe incluir las propiedades "name", "date" y "type", y NADA MÁS QUE EL JSON`;
+
+      await carlPage.writeText(textToSend);
+      await carlPage.clickSendButton();
+
+      let isLoading = await carlPage.isAnswerLoading();
+      let isValidJSON = false;
+      let responseJson = "";
+
+      expect(isLoading, 'La pregunta enviada no disparó el loader de respuesta de CARL').toBe(true);    
+
+      const responseText = await carlPage.getLastCarlAnswer();
+
+      console.log(responseText);
+      
+      // Paso 1: Intenta parsear la respuesta. Si falla, el formato no es JSON.
+      try {
+        responseJson = JSON.parse(responseText);
+        isValidJSON = true;
+      } catch (e) {
+        console.log(`La respuesta no es un JSON válido. Error detallado: ${e}`);
+      }
+
+      // Verificar que la respuesta sea un JSON válido antes de continuar.
+      expect(isValidJSON, 'La respuesta del chatbot no es un JSON válido.').toBe(true);
+
+      // Paso 2: Valida la estructura del objeto JSON parseado.
+      const isValid = validate(responseJson);
+
+      // Si la validación falla, muestra los errores para facilitar la depuración.
+      if (!isValid) {
+        console.error('Errores de validación JSON:', validate.errors);
+      }
+
+      // Afirma que la validación fue exitosa.
+      expect(isValid, "El JSON de la respuesta no tiene el formato esperado").toBe(true);
+          
+  });
    
 }); 
