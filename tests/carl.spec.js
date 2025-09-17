@@ -113,7 +113,7 @@ describe('Navegación a CARL', () => {
 
       let isLoading = await carlPage.isAnswerLoading();
 
-      expect(isLoading, 'CARL no valida que no se puedan enviar preguntas que tenga únicamente espacios').toBe(false);  
+      expect(isLoading, 'CARL no evita que se envíen preguntas que tengan solo caracteres en blanco').toBe(false);  
   });
 }); 
 
@@ -183,10 +183,8 @@ describe('Validar palabras clave e intenciones en preguntas a CARL', () => {
       let textToSend = data.question; 
       console.log("Keywords esperadas:", data.keywords)
 
-      // Si hay historial de mensajes, entonces se inicia un chat nuevo
-     // if ( !(await carlPage.elementIsVisible(carlPage.initialChatMessage)) || await carlPage.isMessageHistory()){ 
+      // Si hay historial de mensajes, entonces se inicia un chat nuevo 
       if (await carlPage.isMessageHistory()){ 
-        console.log("HAY HISTORIAL DE MENSAJES");
         await carlPage.clickOption(carlPage.historyTab);
         await carlPage.clickOption(carlPage.newChatButton); 
         await page.waitForTimeout(MIN_WAIT_TIME);
@@ -195,10 +193,8 @@ describe('Validar palabras clave e intenciones en preguntas a CARL', () => {
       await carlPage.waitForElement(carlPage.initialChatMessage);      
 
       await carlPage.writeText(textToSend);
-      console.log("AÚN NO SE ENVÍA LA PREGUNTA");
       await carlPage.clickSendButton();
       
-      console.log("ENVIADA. AQUÍ ANTES DE ENTRAR A LA FUNCIÓN DE VALIDAR KEYWORDS");
       await carlPage.validateKeywordsInResponseFlexibleMode(data.keywords);
       await carlPage.clickOption(carlPage.deleteLastChatButton); //Borrar el último chat para no saturar historial
     });
@@ -212,9 +208,7 @@ describe('Validar palabras clave e intenciones en preguntas a CARL', () => {
       console.log("Frases esperadas:", data.intention)
 
       // Si hay historial de mensajes, entonces se inicia un chat nuevo
-     // if ( !(await carlPage.elementIsVisible(carlPage.initialChatMessage)) || await carlPage.isMessageHistory()){ 
       if (await carlPage.isMessageHistory()){ 
-        console.log("HAY HISTORIAL DE MENSAJES");
         await carlPage.clickOption(carlPage.historyTab);
         await carlPage.clickOption(carlPage.newChatButton); 
         await page.waitForTimeout(MIN_WAIT_TIME);
@@ -223,11 +217,8 @@ describe('Validar palabras clave e intenciones en preguntas a CARL', () => {
       await carlPage.waitForElement(carlPage.initialChatMessage);  
 
       await carlPage.writeText(textToSend);
-      console.log("AÚN NO SE ENVÍA LA PREGUNTA");
       await carlPage.clickSendButton();
       
-      
-      console.log("ENVIADA. AQUÍ ANTES DE ENTRAR A LA FUNCIÓN DE VALIDAR INTENCIÓN");
       await carlPage.validateIntentionInResponse(data.intention);
       await carlPage.clickOption(carlPage.deleteLastChatButton);  //Borrar el último chat para no saturar historial
     });

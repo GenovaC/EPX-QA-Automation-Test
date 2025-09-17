@@ -5,15 +5,23 @@ const MAX_WAIT_TIME = 5000;
 class CarlPage {
   constructor(page) {
     this.page = page;
+
+
+    //Chat 
+    this.headingCarlText = page.getByRole('heading', { name: 'Chat W/ C.A.R.L', exact: true }); 
+    this.initialChatMessage = page.getByRole('heading', { name: `Hi there!`, exact: false }); 
     this.chatInput       = page.getByRole('textbox', { name: 'How can C.A.R.L. help you today?' });
+    this.sendButton      = page.locator('button.ant-btn.ant-btn-text.block.float-right.p-0');
+    this.microButton     = page.locator('img[src="/img/png/microCarl.png"]');
+    this.answerLoader    = page.getByRole('img', { name: 'loading'}); 
+
+    //Messages
     this.lastCarlMessage = page.locator('.carl-chat-item.list-style-disc').last(); // Localizador del último mensaje
     this.allChatMessages = page.locator('.carl-chat-item.list-style-disc');
-    this.sendButton      = page.locator('button.ant-btn.ant-btn-text.block.float-right.p-0')
+
+    //Clickeables
     this.newChatButton   = page.getByRole('button', { name: 'New chat', exact: false}); 
-    this.headingCarlText = page.getByRole('heading', { name: 'Chat with C.A.R.L.', exact: true }); 
-    this.answerLoader    = page.getByRole('img', { name: 'loading'}); 
-    this.historyTab      = page.getByText('History');
-    this.microButton     = page.locator('img[src="/img/png/microCarl.png"]');
+    this.historyTab      = page.getByText('History');    
     this.initialChatMessage = page.getByRole('heading', { name: `Hi there!`, exact: false }); 
     this.deleteLastChatButton = page.locator('div.flex.flex-row.gap-2.items-center >> div.cursor-pointer').nth(1);
   }
@@ -23,6 +31,12 @@ class CarlPage {
     await this.page.waitForTimeout(MAX_WAIT_TIME);
   }
 
+  async clickOption(locator) {
+    await locator.waitFor({ state: 'visible' }); 
+    await locator.click(); 
+    await this.page.waitForTimeout(MIN_WAIT_TIME);
+  }
+
   async clickSendButton() {
     await this.sendButton.click();
     await this.page.waitForTimeout(MAX_WAIT_TIME); // Pequeña espera para que el bot responda
@@ -30,14 +44,15 @@ class CarlPage {
 
   async writeText(message) {
     await this.answerLoader.waitFor({ state: 'detached' });
+    await this.chatInput.waitFor({ state: 'visible' });
     await this.sendButton.waitFor({ state: 'visible' });
     await this.chatInput.fill(message);    
   }
 
-  async clickOption(locator) {
-    await locator.waitFor({ state: 'visible' }); 
-    await locator.click(); 
-    await this.page.waitForTimeout(MIN_WAIT_TIME);
+  async getChatInputText() {
+    await this.chatInput.waitFor({ state: 'visible' });
+    let chatInput = await this.chatInput.inputValue();
+    return chatInput;
   }
 
   async getLastCarlAnswer() {
@@ -74,12 +89,6 @@ class CarlPage {
 
   async waitForElement(locator){
     await locator.waitFor({ state: 'visible' });
-  }
-
-  async getChatInputText() {
-    await this.chatInput.waitFor({ state: 'visible' });
-    let chatInput = await this.chatInput.inputValue();
-    return chatInput;
   }
 
   async isAnswerLoading() {

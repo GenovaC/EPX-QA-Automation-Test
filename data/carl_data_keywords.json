@@ -1,4 +1,14 @@
-[
+[  
+  {
+    "question": "¿Cómo me suscribo a un evento?",
+    "keywords": ["suscribirse", "rsvp”", "proceso", "eventos disponibles", "detalles", "calendario", "recordatorios", "online", "presencial", "masterclasses", "meetups", "asistencia", "suscripción", "registrarse", "experiencias"],
+    "intention": ["Suscribirte a un evento", "al que quieras suscribirte", "el evento que te interesa", "puedo ayudarte a gestionar tu suscripción", "recibirás una confirmación por correo", "Busca el botón ", "Te explico cómo", "Te explico el proceso", "Confirma tu suscripción" ]
+  },
+  {
+    "question": "¿Qué es un Vault?",
+    "keywords": ["vault", "contenido", "bóveda digital", "contenido", "exclusivo", "grabaciones", "masterclasses", "entrevistas", "biblioteca", "bajo demanda", "material", "recursos", "suscripción", "conocimiento ", "experiencias", "aprendizaje"],
+    "intention": ["El concepto de vault", "te interesa acceder a contenido valioso", "Un vault en EPX es como una bóveda digital", "La idea detrás del vault es", "aprender de expertos", "Revisar material exclusivo de eventos pasados", "vaults más recomendados según tus intereses", "Te gustaría que te muestre algunos", "Te gustaría que te muestre algunos" ]
+  },
   {
     "question": "¿cómo me uno a una tribu?",
     "keywords": ["sencillo", "participar", "intereses", "privada", "tribu", "tribus", "atención", "temas", "unirse", "comunidades", "join", "miembros", "eventos", "explorar", "disponibles"],
